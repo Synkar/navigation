@@ -119,6 +119,10 @@ namespace base_local_planner{
       heading_scoring_ = config.heading_scoring;
       heading_scoring_timestep_ = config.heading_scoring_timestep;
 
+      heading_diff_scale_ = config.heading_diff_scale;
+      heading_diff_tol_ = config.heading_diff_tol;
+      vx_heading_scoring_ = config.vx_heading_scoring;
+      
       simple_attractor_ = config.simple_attractor;
 
       //y-vels
@@ -153,7 +157,8 @@ namespace base_local_planner{
       double max_vel_th, double min_vel_th, double min_in_place_vel_th,
       double backup_vel,
       bool dwa, bool heading_scoring, double heading_scoring_timestep, bool meter_scoring, bool simple_attractor,
-      vector<double> y_vels, double stop_time_buffer, double sim_period, double angular_sim_granularity)
+      vector<double> y_vels, double stop_time_buffer, double sim_period, double angular_sim_granularity,
+      double heading_diff_scale, double vx_heading_scoring, double heading_diff_tol)
     : path_map_(costmap.getSizeInCellsX(), costmap.getSizeInCellsY()),
       goal_map_(costmap.getSizeInCellsX(), costmap.getSizeInCellsY()),
       costmap_(costmap),
@@ -169,7 +174,8 @@ namespace base_local_planner{
     max_vel_th_(max_vel_th), min_vel_th_(min_vel_th), min_in_place_vel_th_(min_in_place_vel_th),
     backup_vel_(backup_vel),
     dwa_(dwa), heading_scoring_(heading_scoring), heading_scoring_timestep_(heading_scoring_timestep),
-    simple_attractor_(simple_attractor), y_vels_(y_vels), stop_time_buffer_(stop_time_buffer), sim_period_(sim_period)
+    simple_attractor_(simple_attractor), y_vels_(y_vels), stop_time_buffer_(stop_time_buffer), sim_period_(sim_period),
+    heading_diff_scale_(heading_diff_scale), vx_heading_scoring_(vx_heading_scoring), heading_diff_tol_(heading_diff_tol)
   {
     //the robot is not stuck to begin with
     stuck_left = false;
@@ -319,10 +325,14 @@ namespace base_local_planner{
         // with heading scoring, we take into account heading diff, and also only score
         // path and goal distance for one point of the trajectory
         if (heading_scoring_) {
-          if (time >= heading_scoring_timestep_ && time < heading_scoring_timestep_ + dt) {
-            heading_diff = headingDiff(cell_x, cell_y, x_i, y_i, theta_i);
-          } else {
-            update_path_and_goal_distances = false;
+          double h_diff = headingDiff(cell_x, cell_y, x_i, y_i, theta_i);
+          if(abs(h_diff) > heading_diff_tol_ && vx_i<vx_heading_scoring_ ){  
+            if (time >= heading_scoring_timestep_ && time < heading_scoring_timestep_ + dt) {
+              heading_diff = h_diff;
+            }
+            else {
+              update_path_and_goal_distances = false;
+            }
           }
         }
 
@@ -364,7 +374,7 @@ namespace base_local_planner{
     if (!heading_scoring_) {
       cost = path_distance_bias_ * path_dist + goal_dist * goal_distance_bias_ + occdist_scale_ * occ_cost;
     } else {
-      cost = occdist_scale_ * occ_cost + path_distance_bias_ * path_dist + 0.3 * heading_diff + goal_dist * goal_distance_bias_;
+      cost = occdist_scale_ * occ_cost + path_distance_bias_ * path_dist + heading_diff_scale_ * heading_diff + goal_dist * goal_distance_bias_;
     }
     traj.cost_ = cost;
   }

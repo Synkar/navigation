@@ -234,7 +234,11 @@ namespace base_local_planner {
       private_nh.param("dwa", dwa, true);
       private_nh.param("heading_scoring", heading_scoring, false);
       private_nh.param("heading_scoring_timestep", heading_scoring_timestep, 0.8);
-
+      double heading_diff_tol, vx_heading_scoring, heading_diff_scale;
+      private_nh.param("heading_diff_scale", heading_diff_scale, 0.3);
+      private_nh.param("heading_diff_tol", heading_diff_tol, 0.1);
+      private_nh.param("vx_heading_scoring", vx_heading_scoring, 0.1);
+      
       simple_attractor = false;
 
       //parameters for using the freespace controller
@@ -254,7 +258,8 @@ namespace base_local_planner {
           acc_lim_x_, acc_lim_y_, acc_lim_theta_, sim_time, sim_granularity, vx_samples, vtheta_samples, path_distance_bias,
           goal_distance_bias, occdist_scale, heading_lookahead, oscillation_reset_dist, escape_reset_dist, escape_reset_theta, holonomic_robot,
           max_vel_x, min_vel_x, max_vel_th_, min_vel_th_, min_in_place_vel_th_, backup_vel,
-          dwa, heading_scoring, heading_scoring_timestep, meter_scoring, simple_attractor, y_vels, stop_time_buffer, sim_period_, angular_sim_granularity);
+          dwa, heading_scoring, heading_scoring_timestep, meter_scoring, simple_attractor, y_vels, stop_time_buffer, sim_period_, angular_sim_granularity,
+          heading_diff_scale, vx_heading_scoring, heading_diff_tol);
 
       map_viz_.initialize(name, global_frame_, boost::bind(&TrajectoryPlanner::getCellCosts, tc_, _1, _2, _3, _4, _5, _6));
       initialized_ = true;

@@ -120,7 +120,8 @@ namespace base_local_planner {
           bool simple_attractor = false,
           std::vector<double> y_vels = std::vector<double>(0),
           double stop_time_buffer = 0.2,
-          double sim_period = 0.1, double angular_sim_granularity = 0.025);
+          double sim_period = 0.1, double angular_sim_granularity = 0.025,
+          double heading_diff_scale = 0.3, double vx_heading_scoring_ = 0.1, double heading_diff_tol=0.1);
 
       /**
        * @brief  Destructs a trajectory controller
@@ -286,7 +287,7 @@ namespace base_local_planner {
       int vx_samples_; ///< @brief The number of samples we'll take in the x dimenstion of the control space
       int vtheta_samples_; ///< @brief The number of samples we'll take in the theta dimension of the control space
 
-      double path_distance_bias_, goal_distance_bias_, occdist_scale_; ///< @brief Scaling factors for the controller's cost function
+      double path_distance_bias_, goal_distance_bias_, occdist_scale_, heading_diff_scale_; ///< @brief Scaling factors for the controller's cost function
       double acc_lim_x_, acc_lim_y_, acc_lim_theta_; ///< @brief The acceleration limits of the robot
 
       double prev_x_, prev_y_; ///< @brief Used to calculate the distance the robot has traveled before reseting oscillation booleans
@@ -306,6 +307,8 @@ namespace base_local_planner {
       bool dwa_;  ///< @brief Should we use the dynamic window approach?
       bool heading_scoring_; ///< @brief Should we score based on the rollout approach or the heading approach
       double heading_scoring_timestep_; ///< @brief How far to look ahead in time when we score a heading
+      double vx_heading_scoring_;
+      double heading_diff_tol_;
       bool simple_attractor_;  ///< @brief Enables simple attraction to a goal point
 
       std::vector<double> y_vels_; ///< @brief Y velocities to explore
