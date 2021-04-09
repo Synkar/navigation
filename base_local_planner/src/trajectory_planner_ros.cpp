@@ -73,6 +73,8 @@ namespace base_local_planner {
       }
       tc_->reconfigure(config);
       reached_goal_ = false;
+      odom_topic_name_ = config.odom_topic_name;
+      odom_helper_.setOdomTopic(odom_topic_name_);
   }
 
   TrajectoryPlannerROS::TrajectoryPlannerROS() :
@@ -239,6 +241,9 @@ namespace base_local_planner {
       private_nh.param("heading_diff_tol", heading_diff_tol, 0.1);
       private_nh.param("vx_heading_scoring", vx_heading_scoring, 0.1);
       
+      private_nh.param("odom_topic_name", odom_topic_name_, std::string("/odom"));
+      odom_helper_.setOdomTopic(odom_topic_name_);
+
       simple_attractor = false;
 
       //parameters for using the freespace controller

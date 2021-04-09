@@ -201,7 +201,7 @@ namespace base_local_planner {
       std::string global_frame_; ///< @brief The frame in which the controller will run
       double max_sensor_range_; ///< @brief Keep track of the effective maximum range of our sensors
       nav_msgs::Odometry base_odom_; ///< @brief Used to get the velocity of the robot
-      std::string robot_base_frame_; ///< @brief Used as the base frame id of the robot
+      std::string robot_base_frame_, odom_topic_name_; ///< @brief Used as the base frame id of the robot
       double rot_stopped_velocity_, trans_stopped_velocity_;
       double xy_goal_tolerance_, yaw_goal_tolerance_, min_in_place_vel_th_;
       std::vector<geometry_msgs::PoseStamped> global_plan_;

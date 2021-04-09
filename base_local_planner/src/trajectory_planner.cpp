@@ -258,6 +258,8 @@ namespace base_local_planner{
     if(heading_scoring_){
       heading_diff = headingDiff(cell_x, cell_y, x_i, y_i, theta_i);
       double vmag = sqrt(vx*vx + vy*vy);
+      ROS_DEBUG("heading_diff= %f, vmag = %f",
+               heading_diff, vmag);
       // std::cout<<"heading_diff: "<<heading_diff<<"vmag: "<<vmag<<std::endl;
 
       //If the robot is stopped in place
@@ -270,7 +272,7 @@ namespace base_local_planner{
 
     //compute the number of steps we must take along this trajectory to be "safe"
     int num_steps;
-    if(!heading_scoring_  || initial_heading_diff_ok) {
+    if(initial_heading_diff_ok) {
       num_steps = int(max((vmag * sim_time_) / sim_granularity_, fabs(vtheta_samp) / angular_sim_granularity_) + 0.5);
     } else {
       num_steps = int(sim_time_ / sim_granularity_ + 0.5);
@@ -343,7 +345,7 @@ namespace base_local_planner{
         bool update_path_and_goal_distances = true;
         // with heading scoring, we take into account heading diff, and also only score
         // path and goal distance for one point of the trajectory
-        if (heading_scoring_ && !initial_heading_diff_ok) {
+        if (!initial_heading_diff_ok) {
           if (time >= heading_scoring_timestep_ && time < heading_scoring_timestep_ + dt) {
             heading_diff = headingDiff(cell_x, cell_y, x_i, y_i, theta_i);
           }
@@ -388,7 +390,7 @@ namespace base_local_planner{
 
     //ROS_INFO("OccCost: %f, vx: %.2f, vy: %.2f, vtheta: %.2f", occ_cost, vx_samp, vy_samp, vtheta_samp);
     double cost = -1.0;
-    if (!heading_scoring_ || initial_heading_diff_ok) {
+    if (initial_heading_diff_ok) {
       cost = path_distance_bias_ * path_dist + goal_dist * goal_distance_bias_ + occdist_scale_ * occ_cost;
     } else {
       cost = occdist_scale_ * occ_cost + path_distance_bias_ * path_dist + heading_diff_scale_ * heading_diff + goal_dist * goal_distance_bias_;
