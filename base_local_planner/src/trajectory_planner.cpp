@@ -264,7 +264,7 @@ namespace base_local_planner{
 
       //If the robot is stopped in place
       if(vmag<vx_heading_scoring_)
-        initial_heading_diff_ok = heading_diff<heading_diff_tol_ || heading_diff>1.4;
+        initial_heading_diff_ok = heading_diff<heading_diff_tol_ || heading_diff>1.57;
     }
 
     //compute the magnitude of the velocities
