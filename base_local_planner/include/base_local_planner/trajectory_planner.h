@@ -121,7 +121,7 @@ namespace base_local_planner {
           std::vector<double> y_vels = std::vector<double>(0),
           double stop_time_buffer = 0.2,
           double sim_period = 0.1, double angular_sim_granularity = 0.025,
-          double heading_diff_scale = 0.3, double vx_heading_scoring_ = 0.1, double heading_diff_tol=0.1);
+          double heading_diff_scale = 0.3, double vx_heading_scoring_ = 0.1, double heading_diff_tol=0.1, double heading_diff_trigger_angle=1.57);
 
       /**
        * @brief  Destructs a trajectory controller
@@ -308,7 +308,7 @@ namespace base_local_planner {
       bool heading_scoring_; ///< @brief Should we score based on the rollout approach or the heading approach
       double heading_scoring_timestep_; ///< @brief How far to look ahead in time when we score a heading
       double vx_heading_scoring_;
-      double heading_diff_tol_;
+      double heading_diff_tol_, heading_diff_trigger_angle_;
       bool simple_attractor_;  ///< @brief Enables simple attraction to a goal point
 
       std::vector<double> y_vels_; ///< @brief Y velocities to explore

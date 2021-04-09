@@ -122,6 +122,7 @@ namespace base_local_planner{
       heading_diff_scale_ = config.heading_diff_scale;
       heading_diff_tol_ = config.heading_diff_tol;
       vx_heading_scoring_ = config.vx_heading_scoring;
+      heading_diff_trigger_angle_ = config.heading_diff_trigger_angle;
       
       simple_attractor_ = config.simple_attractor;
 
@@ -158,7 +159,7 @@ namespace base_local_planner{
       double backup_vel,
       bool dwa, bool heading_scoring, double heading_scoring_timestep, bool meter_scoring, bool simple_attractor,
       vector<double> y_vels, double stop_time_buffer, double sim_period, double angular_sim_granularity,
-      double heading_diff_scale, double vx_heading_scoring, double heading_diff_tol)
+      double heading_diff_scale, double vx_heading_scoring, double heading_diff_tol, double heading_diff_trigger_angle)
     : path_map_(costmap.getSizeInCellsX(), costmap.getSizeInCellsY()),
       goal_map_(costmap.getSizeInCellsX(), costmap.getSizeInCellsY()),
       costmap_(costmap),
@@ -175,7 +176,7 @@ namespace base_local_planner{
     backup_vel_(backup_vel),
     dwa_(dwa), heading_scoring_(heading_scoring), heading_scoring_timestep_(heading_scoring_timestep),
     simple_attractor_(simple_attractor), y_vels_(y_vels), stop_time_buffer_(stop_time_buffer), sim_period_(sim_period),
-    heading_diff_scale_(heading_diff_scale), vx_heading_scoring_(vx_heading_scoring), heading_diff_tol_(heading_diff_tol)
+    heading_diff_scale_(heading_diff_scale), vx_heading_scoring_(vx_heading_scoring), heading_diff_tol_(heading_diff_tol), heading_diff_trigger_angle_(heading_diff_trigger_angle)
   {
     //the robot is not stuck to begin with
     stuck_left = false;
@@ -264,7 +265,7 @@ namespace base_local_planner{
 
       //If the robot is stopped in place
       if(vmag<vx_heading_scoring_)
-        initial_heading_diff_ok = heading_diff<heading_diff_tol_ || heading_diff>1.57;
+        initial_heading_diff_ok = heading_diff<heading_diff_tol_ || heading_diff>heading_diff_trigger_angle_;
     }
 
     //compute the magnitude of the velocities
