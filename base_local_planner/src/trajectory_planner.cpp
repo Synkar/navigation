@@ -238,12 +238,39 @@ namespace base_local_planner{
     vy_i = vy;
     vtheta_i = vtheta;
 
+    //initialize the costs for the trajectory
+    double path_dist = 0.0;
+    double goal_dist = 0.0;
+    double occ_cost = 0.0;
+    double heading_diff = 0.0;
+    //get map coordinates of a point
+    unsigned int cell_x, cell_y;
+
+    //we don't want a path that goes off the know map
+    if(!costmap_.worldToMap(x_i, y_i, cell_x, cell_y)){
+      traj.cost_ = -1.0;
+      return;
+    }
+
+    bool initial_heading_diff_ok = true;
+
+    //Verify if heading_scoring is necessary
+    if(heading_scoring_){
+      heading_diff = headingDiff(cell_x, cell_y, x_i, y_i, theta_i);
+      double vmag = sqrt(vx*vx + vy*vy);
+      // std::cout<<"heading_diff: "<<heading_diff<<"vmag: "<<vmag<<std::endl;
+
+      //If the robot is stopped in place
+      if(vmag<vx_heading_scoring_)
+        initial_heading_diff_ok = heading_diff<heading_diff_tol_ || heading_diff>1.4;
+    }
+
     //compute the magnitude of the velocities
     double vmag = hypot(vx_samp, vy_samp);
 
     //compute the number of steps we must take along this trajectory to be "safe"
     int num_steps;
-    if(!heading_scoring_) {
+    if(!heading_scoring_  || initial_heading_diff_ok) {
       num_steps = int(max((vmag * sim_time_) / sim_granularity_, fabs(vtheta_samp) / angular_sim_granularity_) + 0.5);
     } else {
       num_steps = int(sim_time_ / sim_granularity_ + 0.5);
@@ -264,15 +291,8 @@ namespace base_local_planner{
     traj.thetav_ = vtheta_samp;
     traj.cost_ = -1.0;
 
-    //initialize the costs for the trajectory
-    double path_dist = 0.0;
-    double goal_dist = 0.0;
-    double occ_cost = 0.0;
-    double heading_diff = 0.0;
 
     for(int i = 0; i < num_steps; ++i){
-      //get map coordinates of a point
-      unsigned int cell_x, cell_y;
 
       //we don't want a path that goes off the know map
       if(!costmap_.worldToMap(x_i, y_i, cell_x, cell_y)){
@@ -321,20 +341,17 @@ namespace base_local_planner{
       } else {
 
         bool update_path_and_goal_distances = true;
-
         // with heading scoring, we take into account heading diff, and also only score
         // path and goal distance for one point of the trajectory
-        if (heading_scoring_) {
-          double h_diff = headingDiff(cell_x, cell_y, x_i, y_i, theta_i);
-          if(abs(h_diff) > heading_diff_tol_ && vx_i<vx_heading_scoring_ ){  
-            if (time >= heading_scoring_timestep_ && time < heading_scoring_timestep_ + dt) {
-              heading_diff = h_diff;
-            }
-            else {
-              update_path_and_goal_distances = false;
-            }
+        if (heading_scoring_ && !initial_heading_diff_ok) {
+          if (time >= heading_scoring_timestep_ && time < heading_scoring_timestep_ + dt) {
+            heading_diff = headingDiff(cell_x, cell_y, x_i, y_i, theta_i);
+          }
+          else {
+            update_path_and_goal_distances = false;
           }
         }
+        
 
         if (update_path_and_goal_distances) {
           //update path and goal distances
@@ -371,7 +388,7 @@ namespace base_local_planner{
 
     //ROS_INFO("OccCost: %f, vx: %.2f, vy: %.2f, vtheta: %.2f", occ_cost, vx_samp, vy_samp, vtheta_samp);
     double cost = -1.0;
-    if (!heading_scoring_) {
+    if (!heading_scoring_ || initial_heading_diff_ok) {
       cost = path_distance_bias_ * path_dist + goal_dist * goal_distance_bias_ + occdist_scale_ * occ_cost;
     } else {
       cost = occdist_scale_ * occ_cost + path_distance_bias_ * path_dist + heading_diff_scale_ * heading_diff + goal_dist * goal_distance_bias_;
