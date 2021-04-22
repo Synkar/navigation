@@ -121,7 +121,8 @@ namespace base_local_planner {
           std::vector<double> y_vels = std::vector<double>(0),
           double stop_time_buffer = 0.2,
           double sim_period = 0.1, double angular_sim_granularity = 0.025,
-          double heading_diff_scale = 0.3, double vx_heading_scoring_ = 0.1, double heading_diff_tol=0.1, double heading_diff_trigger_angle=1.57);
+          double heading_diff_scale = 0.3, double vx_heading_scoring_ = 0.1, double heading_diff_tol=0.1, double heading_diff_trigger_angle=1.57, 
+          double min_abs_vel_th=0.1);
 
       /**
        * @brief  Destructs a trajectory controller
@@ -300,7 +301,7 @@ namespace base_local_planner {
       double escape_reset_dist_, escape_reset_theta_; ///< @brief The distance the robot must travel before it can leave escape mode
       bool holonomic_robot_; ///< @brief Is the robot holonomic or not? 
       
-      double max_vel_x_, min_vel_x_, max_vel_th_, min_vel_th_, min_in_place_vel_th_; ///< @brief Velocity limits for the controller
+      double max_vel_x_, min_vel_x_, max_vel_th_, min_vel_th_, min_in_place_vel_th_, min_abs_vel_th_; ///< @brief Velocity limits for the controller
 
       double backup_vel_; ///< @brief The velocity to use while backing up
 

@@ -74,6 +74,7 @@ namespace base_local_planner{
       max_vel_th_ = config.max_vel_theta;
       min_vel_th_ = config.min_vel_theta;
       min_in_place_vel_th_ = config.min_in_place_vel_theta;
+      min_abs_vel_th_ = config.min_abs_vel_th;
 
       sim_time_ = config.sim_time;
       sim_granularity_ = config.sim_granularity;
@@ -159,7 +160,8 @@ namespace base_local_planner{
       double backup_vel,
       bool dwa, bool heading_scoring, double heading_scoring_timestep, bool meter_scoring, bool simple_attractor,
       vector<double> y_vels, double stop_time_buffer, double sim_period, double angular_sim_granularity,
-      double heading_diff_scale, double vx_heading_scoring, double heading_diff_tol, double heading_diff_trigger_angle)
+      double heading_diff_scale, double vx_heading_scoring, double heading_diff_tol, double heading_diff_trigger_angle,
+      double min_abs_vel_th)
     : path_map_(costmap.getSizeInCellsX(), costmap.getSizeInCellsY()),
       goal_map_(costmap.getSizeInCellsX(), costmap.getSizeInCellsY()),
       costmap_(costmap),
@@ -176,7 +178,8 @@ namespace base_local_planner{
     backup_vel_(backup_vel),
     dwa_(dwa), heading_scoring_(heading_scoring), heading_scoring_timestep_(heading_scoring_timestep),
     simple_attractor_(simple_attractor), y_vels_(y_vels), stop_time_buffer_(stop_time_buffer), sim_period_(sim_period),
-    heading_diff_scale_(heading_diff_scale), vx_heading_scoring_(vx_heading_scoring), heading_diff_tol_(heading_diff_tol), heading_diff_trigger_angle_(heading_diff_trigger_angle)
+    heading_diff_scale_(heading_diff_scale), vx_heading_scoring_(vx_heading_scoring), heading_diff_tol_(heading_diff_tol), heading_diff_trigger_angle_(heading_diff_trigger_angle),
+    min_abs_vel_th_(min_abs_vel_th)
   {
     //the robot is not stuck to begin with
     stuck_left = false;
@@ -630,14 +633,16 @@ namespace base_local_planner{
         vtheta_samp = min_vel_theta;
         //next sample all theta trajectories
         for(int j = 0; j < vtheta_samples_ - 1; ++j){
-          generateTrajectory(x, y, theta, vx, vy, vtheta, vx_samp, vy_samp, vtheta_samp,
-              acc_x, acc_y, acc_theta, impossible_cost, *comp_traj);
+          if(abs(vtheta_samp)> min_abs_vel_th_){
+            generateTrajectory(x, y, theta, vx, vy, vtheta, vx_samp, vy_samp, vtheta_samp,
+                acc_x, acc_y, acc_theta, impossible_cost, *comp_traj);
 
-          //if the new trajectory is better... let's take it
-          if(comp_traj->cost_ >= 0 && (comp_traj->cost_ < best_traj->cost_ || best_traj->cost_ < 0)){
-            swap = best_traj;
-            best_traj = comp_traj;
-            comp_traj = swap;
+            //if the new trajectory is better... let's take it
+            if(comp_traj->cost_ >= 0 && (comp_traj->cost_ < best_traj->cost_ || best_traj->cost_ < 0)){
+              swap = best_traj;
+              best_traj = comp_traj;
+              comp_traj = swap;
+            }
           }
           vtheta_samp += dvtheta;
         }
